@@ -58,6 +58,11 @@ const data = {
       icon: IconListDetails,
     },
     {
+      title: "Order Place",
+      url: "/order-place",
+      icon: IconUsers,
+    },
+    {
       title: "Analytics",
       url: "/analytics",
       icon: IconChartBar,
@@ -67,11 +72,7 @@ const data = {
       url: "#",
       icon: IconFolder,
     },
-    {
-      title: "Order Place",
-      url: "#",
-      icon: IconUsers,
-    },
+
   ],
   navClouds: [
     {

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { IconUpload } from "@tabler/icons-react"
 import { Camera,Leaf,Ruler,CircleCheck,RulerDimensionLine } from "lucide-react";
+import { AlertSuccessfull } from "@/components/alertSuccessfull"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -65,6 +66,8 @@ export default function AddTreePage() {
 
   const [isDetecting, setIsDetecting] = useState(false)
 
+  const [eventSuccess, setEventSuccess] = useState(false)
+
   const form = useForm<AddTreeFormValues>({
     resolver: zodResolver(addTreeSchema),
     defaultValues: {
@@ -109,6 +112,10 @@ export default function AddTreePage() {
     } finally {
       setIsDetecting(false)
     }
+  }
+
+  const handleSaveTree = () => {
+    setEventSuccess(true);
   }
   
 
@@ -387,8 +394,14 @@ export default function AddTreePage() {
                     Please complete required fields: Photo, Name and Species and click Save button.
                     </p>
                     <div className="flex gap-2">
-                      <Button size="lg">Save Tree</Button>
-                      <Button size="lg" variant="secondary">Clear</Button>
+                      <Button size="lg" onClick={handleSaveTree}>Save Tree</Button>
+                      <Button size="lg" variant="secondary">Clear form</Button>
+                      {eventSuccess && (
+                        <AlertSuccessfull
+                        title="New Tree Successful Saved"
+                        date={new Date}
+                  />
+                )}
                     </div>
                   </CardContent>
                 </Card>
