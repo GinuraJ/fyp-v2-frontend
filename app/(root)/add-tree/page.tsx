@@ -28,6 +28,13 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 const addTreeSchema = z.object({
@@ -129,7 +136,7 @@ export default function AddTreePage() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-[1.5fr_3fr] lg:px-6">
+              <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-[2fr_3fr] lg:px-6">
                 <Card className="min-h-[200px] md:col-start-1">
                   <CardHeader>
                     <CardTitle>Measure Tree Height</CardTitle>
@@ -186,25 +193,29 @@ export default function AddTreePage() {
                           )}
                         />
                         {(filePreview || fileName) && (
-                          <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
+                          <div className="flex gap-4 rounded-lg border bg-muted/50 p-4">
                             {filePreview && (
                               <img
                                 src={filePreview}
                                 alt="File preview"
-                                className="max-h-40 w-full rounded-md border object-contain"
+                                className="h-24 w-24 shrink-0 rounded-md border object-cover"
                               />
                             )}
-                            {fileName && (
-                              <p className="text-sm font-medium">{fileName}</p>
-                            )}
-                            {fileSize !== null && (
-                              <p className="text-xs text-muted-foreground">
-                                Size: {formatFileSize(fileSize)}
-                              </p>
-                            )}
+                            <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                              {fileName && (
+                                <p className="truncate text-sm font-medium">
+                                  {fileName}
+                                </p>
+                              )}
+                              {fileSize !== null && (
+                                <p className="text-xs text-muted-foreground">
+                                  Size: {formatFileSize(fileSize)}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         )}
-                        <Button type="submit">Add Tree</Button>
+                        <Button type="submit">Measure</Button>
                       </form>
                     </Form>
                   </CardContent>
@@ -217,33 +228,96 @@ export default function AddTreePage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Tree Name
+                        <label
+                          className="text-sm font-medium"
+                          htmlFor="tree-name"
+                        >
+                          Name
                         </label>
-                        <Input placeholder="Enter tree name" disabled />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Species</label>
-                        <Input placeholder="Enter species" disabled />
+                        <Input
+                          id="tree-name"
+                          placeholder="Enter tree name"
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">
-                          Location
+                          Tree species
                         </label>
-                        <Input placeholder="Enter location" disabled />
+                        <Select defaultValue="oak">
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select species" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="oak">Oak</SelectItem>
+                            <SelectItem value="pine">Pine</SelectItem>
+                            <SelectItem value="maple">Maple</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">
+                        <label
+                          className="text-sm font-medium"
+                          htmlFor="tree-diameter"
+                        >
+                          Diameter (cm)
+                        </label>
+                        <Input
+                          id="tree-diameter"
+                          type="number"
+                          placeholder="0.0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label
+                          className="text-sm font-medium"
+                          htmlFor="tree-height"
+                        >
                           Height (m)
                         </label>
                         <Input
+                          id="tree-height"
                           type="number"
-                          placeholder="0.00"
-                          disabled
+                          placeholder="0.0"
                         />
                       </div>
+                      <div className="space-y-2">
+                        <label
+                          className="text-sm font-medium"
+                          htmlFor="tree-age"
+                        >
+                          Age (years)
+                        </label>
+                        <Input
+                          id="tree-age"
+                          type="number"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label
+                          className="text-sm font-medium"
+                          htmlFor="tree-location"
+                        >
+                          Geo location
+                        </label>
+                        <Input
+                          id="tree-location"
+                          placeholder="Latitude, Longitude"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="md:col-start-2">
+                  <CardContent className="flex flex-col gap-4">
+                    <p className="text-sm text-muted-foreground">
+                    Please complete required fields: Photo, Name and Species and click Save button.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button size="lg">Save</Button>
+                      <Button size="lg" variant="secondary">Clear</Button>
                     </div>
                   </CardContent>
                 </Card>

@@ -47,7 +47,13 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Add Tree",
+      url: "/add-tree",
+      icon: IconTree,
+    },
+    
+    {
+      title: "Tree Repository",
       url: "#",
       icon: IconListDetails,
     },
@@ -57,19 +63,14 @@ const data = {
       icon: IconChartBar,
     },
     {
-      title: "Projects",
+      title: "My Wallet",
       url: "#",
       icon: IconFolder,
     },
     {
-      title: "Team",
+      title: "Order Place",
       url: "#",
       icon: IconUsers,
-    },
-    {
-      title: "Add Tree",
-      url: "/add-tree",
-      icon: IconTree,
     },
   ],
   navClouds: [
