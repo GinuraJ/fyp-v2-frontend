@@ -103,7 +103,7 @@ export default function AddTreePage() {
               <div className="px-4 lg:px-6">
                 <Card className="max-w-2xl">
                   <CardHeader>
-                    <CardTitle>Measure Tree Height</CardTitle>
+                    <CardTitle>Measure Tree Height Test</CardTitle>
                     <CardDescription>
                       Enter tree details and upload an image or document.
                     </CardDescription>
