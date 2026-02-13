@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { IconUpload } from "@tabler/icons-react"
+import { Camera,Leaf,Ruler,CircleCheck,RulerDimensionLine } from "lucide-react";
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -42,8 +43,8 @@ const addTreeSchema = z.object({
     .custom<FileList>()
     .refine((files) => files && files.length > 0, "File is required")
     .refine(
-      (files) => !files[0] || files[0].size <= 5 * 1024 * 1024,
-      "Max file size is 5MB"
+      (files) => !files[0] || files[0].size <= 10 * 1024 * 1024,
+      "Max file size is 10MB"
     ),
 })
 
@@ -62,6 +63,8 @@ export default function AddTreePage() {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputId = "file-upload-add-tree"
 
+  const [isDetecting, setIsDetecting] = useState(false)
+
   const form = useForm<AddTreeFormValues>({
     resolver: zodResolver(addTreeSchema),
     defaultValues: {
@@ -69,9 +72,45 @@ export default function AddTreePage() {
     },
   })
 
-  const onSubmit = (data: AddTreeFormValues) => {
-    console.log(data)
+  const onSubmit = async (data: AddTreeFormValues) => {
+    const imageFile = data.file?.[0]
+  
+    if (!imageFile) {
+      alert("Please select an image first")
+      return
+    }
+  
+    setIsDetecting(true)
+  
+    try {
+      const formData = new FormData()
+      formData.append("file", imageFile)
+  
+      console.log("Sending image to YOLO API...")
+  
+      const response = await fetch("http://64.227.128.213:8000/detect", {
+        method: "POST",
+        body: formData,
+      })
+  
+      console.log("Response:", response)
+  
+      const data = await response.json()
+      console.log("YOLO API response:", data)
+  
+      if (response.ok) {
+        alert("Detection success:\n" + JSON.stringify(data, null, 2))
+      } else {
+        alert("Detection failed")
+      }
+    } catch (error) {
+      console.error("Error calling YOLO API:", error)
+      alert("Error connecting to detection service")
+    } finally {
+      setIsDetecting(false)
+    }
   }
+  
 
   const processFiles = (files: FileList | null, onChange: (value: FileList) => void) => {
     if (files && files.length > 0) {
@@ -215,7 +254,39 @@ export default function AddTreePage() {
                             </div>
                           </div>
                         )}
-                        <Button type="submit">Measure</Button>
+                        {/* <Button type="submit">Measure</Button> */}
+                        <Button type="submit" disabled={isDetecting}>
+                          {isDetecting ? (
+                                <>
+                                    <svg
+                                        className="animate-spin h-5 w-5 mr-2 text-white"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                            fill="none"
+                                        />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                        />
+                                    </svg>
+                                    Measuring...
+                                </>
+                            ) : (
+                                <>
+                                    <RulerDimensionLine className="w-5 h-5 mr-3" />
+                                    <span>Measure</span>
+                                </>
+                            )}
+                        </Button>
+
                       </form>
                     </Form>
                   </CardContent>
@@ -316,7 +387,7 @@ export default function AddTreePage() {
                     Please complete required fields: Photo, Name and Species and click Save button.
                     </p>
                     <div className="flex gap-2">
-                      <Button size="lg">Save</Button>
+                      <Button size="lg">Save Tree</Button>
                       <Button size="lg" variant="secondary">Clear</Button>
                     </div>
                   </CardContent>
