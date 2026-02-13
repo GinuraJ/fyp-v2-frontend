@@ -54,7 +54,7 @@ const data = {
     
     {
       title: "Tree Repository",
-      url: "#",
+      url: "/tree-repo",
       icon: IconListDetails,
     },
     {
