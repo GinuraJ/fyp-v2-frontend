@@ -47,9 +47,20 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "Add Tree",
+      url: "/add-tree",
+      icon: IconTree,
+    },
+    
+    {
+      title: "Tree Repository",
+      url: "/tree-repo",
       icon: IconListDetails,
+    },
+    {
+      title: "Order Place",
+      url: "/order-place",
+      icon: IconUsers,
     },
     {
       title: "Analytics",
@@ -57,20 +68,11 @@ const data = {
       icon: IconChartBar,
     },
     {
-      title: "Projects",
+      title: "My Wallet",
       url: "#",
       icon: IconFolder,
     },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-    {
-      title: "Add Tree",
-      url: "/add-tree",
-      icon: IconTree,
-    },
+
   ],
   navClouds: [
     {
@@ -168,7 +170,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">GreenMint</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -176,8 +178,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavDocuments items={data.documents} /> */}
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
