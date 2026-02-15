@@ -28,40 +28,120 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-type ExpireType = "today" | "never" | "period"
-type OrderType = "buy" | "sell"
+type ExpireType = "T" | "N" | "P"
+type OrderType = "B" | "S"
 
 export default function AnalyticsPage() {
   const [maxPrice, setMaxPrice] = useState("")
   const [minPrice, setMinPrice] = useState("")
   const [quantity, setQuantity] = useState("")
   const [executeStatus, setExecuteStatus] = useState("")
-  const [expireType, setExpireType] = useState<ExpireType>("today")
+  const [expireType, setExpireType] = useState<ExpireType>("T")
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
-  const [orderType, setOrderType] = useState<OrderType>("buy")
+  const [orderType, setOrderType] = useState<OrderType>("B")
 
   const [eventSuccess, setEventSuccess] = useState(false)
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+  
+    try {
 
+        let executeFrom: string;
+        let executeTo: string;
+    
+        const now = new Date();
+    
+        if (expireType === "T") {
+          executeFrom = now.toISOString();
+          const endOfToday = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            23,
+            59,
+            59
+          );
+          executeTo = endOfToday.toISOString();
+        } else if (expireType === "N") {
+          const startOfToday = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            0,
+            0,
+            0
+          );
+          const endOfToday = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            23,
+            59,
+            59
+          );
+          executeFrom = startOfToday.toISOString();
+          executeTo = endOfToday.toISOString();
+        } else if (expireType === "P") {
+          executeFrom = fromDate ? new Date(fromDate).toISOString() : "";
+          executeTo =toDate ? new Date(toDate).toISOString() : "";
+        } else {
+            executeFrom = "";
+            executeTo ="";
+        }
 
-   
-    setEventSuccess(true);
+      // Map form state to API payload
+      const payload = {
+        buySell: orderType,
+        priceMin: minPrice,
+        priceMax: maxPrice,
+        quantity: quantity,
+        executeFrom,
+        executeTo,
+        balanceQuantity: "0",
+        executeStatus: executeStatus, 
+        userId: "Ginura", 
+      };
 
-
-}
+      console.log(payload.buySell);
+  
+      const response = await fetch("http://localhost:8080/api/order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      const data = await response.json();
+  
+      if (data.code === "0000") {
+        setEventSuccess(true);
+        console.log("Order success:", data.order);
+      } else {
+        setEventSuccess(false);
+        alert(`Error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+      setEventSuccess(false);
+      alert("Failed to place order. Check console for details.");
+    }
+  };
+  
 
   const handleClear = () => {
     setMaxPrice("")
     setMinPrice("")
     setQuantity("")
     setExecuteStatus("")
-    setExpireType("today")
+    setExpireType("T")
     setFromDate("")
     setToDate("")
-    setOrderType("buy")
+    setOrderType("B")
+    setEventSuccess(false)
+
   }
 
   return (
@@ -100,8 +180,8 @@ export default function AnalyticsPage() {
                     className="w-fit"
                   >
                     <TabsList>
-                      <TabsTrigger value="buy">Buy order</TabsTrigger>
-                      <TabsTrigger value="sell">Sell order</TabsTrigger>
+                      <TabsTrigger value="B">Buy order</TabsTrigger>
+                      <TabsTrigger value="S">Sell order</TabsTrigger>
                     </TabsList>
                   </Tabs>
                     </div>
@@ -170,15 +250,15 @@ export default function AnalyticsPage() {
                           <SelectValue placeholder="Select expire period" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="today">Today</SelectItem>
-                          <SelectItem value="never">Never expire</SelectItem>
-                          <SelectItem value="period">Period</SelectItem>
+                          <SelectItem value="T">Today</SelectItem>
+                          <SelectItem value="N">Never expire</SelectItem>
+                          <SelectItem value="P">Period</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
-                  {expireType === "period" && (
+                  {expireType === "P" && (
                     <div className="grid gap-4 md:grid-cols-3">
                         <div>
 
