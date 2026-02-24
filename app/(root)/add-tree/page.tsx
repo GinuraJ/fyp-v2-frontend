@@ -58,6 +58,9 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function AddTreePage() {
+  const [detectionResult, setDetectionResult] = useState<any>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   const [filePreview, setFilePreview] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [fileSize, setFileSize] = useState<number | null>(null)
@@ -76,43 +79,42 @@ export default function AddTreePage() {
   })
 
   const onSubmit = async (data: AddTreeFormValues) => {
-    const imageFile = data.file?.[0]
+    const imageFile = data.file?.[0];
   
     if (!imageFile) {
-      alert("Please select an image first")
-      return
+      alert("Please select an image first");
+      return;
     }
   
-    setIsDetecting(true)
+    setIsDetecting(true);
   
     try {
-      const formData = new FormData()
-      formData.append("file", imageFile)
+      const formData = new FormData();
+      formData.append("file", imageFile);
   
-      console.log("Sending image to YOLO API...")
-  
-      const response = await fetch("http://64.227.128.213:8000/detect", {
+      const response = await fetch("http://127.0.0.1:8000/detect", {
         method: "POST",
         body: formData,
-      })
+      });
   
-      console.log("Response:", response)
+      const result = await response.json();
   
-      const data = await response.json()
-      console.log("YOLO API response:", data)
-  
-      if (response.ok) {
-        alert("Detection success:\n" + JSON.stringify(data, null, 2))
-      } else {
-        alert("Detection failed")
+      if (!response.ok) {
+        throw new Error(result.error || "Detection failed");
       }
-    } catch (error) {
-      console.error("Error calling YOLO API:", error)
-      alert("Error connecting to detection service")
+  
+      console.log("Detection result:", result);
+  
+      alert("Detection Success:\n" + JSON.stringify(result, null, 2));
+  
+    } catch (error: any) {
+      console.error("Error:", error);
+      alert(error.message || "Something went wrong");
+  
     } finally {
-      setIsDetecting(false)
+      setIsDetecting(false);
     }
-  }
+  };
 
   const handleSaveTree = () => {
     setEventSuccess(true);
