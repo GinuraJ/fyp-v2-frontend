@@ -2,7 +2,8 @@
 
 import type React from "react"
 import { useState } from "react"
-import { AlertSuccessfull } from "@/components/alertSuccessfull"
+// import { AlertSuccessfull } from "@/components/alertSuccessfull"
+import { AlertMessage } from "@/components/alertPost"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -27,6 +28,10 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TabsOrders } from "@/components/orderFilterTabs"
+
+
+import { API_BASE_URL } from "@/lib/config";
 
 type ExpireType = "T" | "N" | "P"
 type OrderType = "B" | "S"
@@ -41,7 +46,16 @@ export default function AnalyticsPage() {
   const [toDate, setToDate] = useState("")
   const [orderType, setOrderType] = useState<OrderType>("B")
 
-  const [eventSuccess, setEventSuccess] = useState(false)
+  // const [eventSuccess, setEventSuccess] = useState(false)
+  type AlertVariant = "success" | "warning" | "error"
+
+  const [alert, setAlert] = useState<{
+    show: boolean
+    title: string
+    variant: AlertVariant
+  } | null>(null)
+
+  const [refreshKey, setRefreshKey] = useState<number>(0)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -91,7 +105,15 @@ export default function AnalyticsPage() {
             executeTo ="";
         }
 
-      // Map form state to API payload
+        if (!minPrice || !maxPrice || !quantity || !executeStatus) {
+          setAlert({
+            show: true,
+            title: "Please fill all required fields",
+            variant: "warning",
+          })
+          return
+        }
+
       const payload = {
         buySell: orderType,
         priceMin: minPrice,
@@ -106,7 +128,7 @@ export default function AnalyticsPage() {
 
       console.log(payload.buySell);
   
-      const response = await fetch("http://localhost:8080/api/order", {
+      const response = await fetch(`${API_BASE_URL}/order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,16 +139,27 @@ export default function AnalyticsPage() {
       const data = await response.json();
   
       if (data.code === "0000") {
-        setEventSuccess(true);
+        setAlert({
+          show: true,
+          title: "Order placed successfully",
+          variant: "success",
+        })
+        setRefreshKey(prev => prev + 1);
         console.log("Order success:", data.order);
       } else {
-        setEventSuccess(false);
-        alert(`Error: ${data.message}`);
+        setAlert({
+          show: true,
+          title: data.message || "Failed to place order",
+          variant: "error",
+        })
       }
     } catch (error) {
       console.error("API Error:", error);
-      setEventSuccess(false);
-      alert("Failed to place order. Check console for details.");
+      setAlert({
+        show: true,
+        title: "Network error. Please try again.",
+        variant: "error",
+      })
     }
   };
   
@@ -140,8 +173,7 @@ export default function AnalyticsPage() {
     setFromDate("")
     setToDate("")
     setOrderType("B")
-    setEventSuccess(false)
-
+    setAlert(null)
   }
 
   return (
@@ -282,18 +314,20 @@ export default function AnalyticsPage() {
                         />
                       </div>
                     </div>
+                    
                   )}
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="flex justify-end gap-3 py-2">
-                {eventSuccess && (
-                    <AlertSuccessfull
-                    title="Order Successful placed"
-                    date={new Date}
-                  />
-                )}
+                  {alert?.show && (
+                    <AlertMessage
+                      title={alert.title}
+                      date={new Date()}
+                      variant={alert.variant}
+                    />
+                  )}
                   <Button
                   size="lg" type="button" variant="secondary" onClick={handleClear}>
                     Clear form
@@ -304,8 +338,19 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
             </form>
+
+            <div className="flex flex-1 flex-col">
+              <div className="@container/main flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-4 md:gap-6 md:py-6 px-4 lg:px-6">
+                  <TabsOrders refreshKey={refreshKey}/>
+                </div>
+              </div>
+            </div>
           </div>
+
+          
         </div>
+        
       </SidebarInset>
     </SidebarProvider>
   )

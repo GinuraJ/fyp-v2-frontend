@@ -22,7 +22,7 @@ export function SectionCards() {
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +12.5%
+              +12%
             </Badge>
           </CardAction>
         </CardHeader>

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TableDemo, type TreeRow } from "@/components/TreeTable"
 
+import { API_BASE_URL } from "@/lib/config";
+
 type StatusFilter = "all" | "P" | "A" | "E"
 
 export function TabsDemo() {
@@ -17,16 +19,22 @@ export function TabsDemo() {
     const fetchTrees = async () => {
       setLoading(true)
       setError(null)
-
+      
       try {
-        let url = "https://greenmin-apis.onrender.com/api/trees"
+        // let url = `https://greenmin-apis.onrender.com/api/trees`
+        let url = `${API_BASE_URL}/trees/find/userwise/admin`
+        console.log(url)
 
         if (statusFilter === "P") {
-          url = "https://greenmin-apis.onrender.com/api/trees/find/P"
+          // url = "https://greenmin-apis.onrender.com/api/trees/find/P"
+          url = `${API_BASE_URL}/trees/find/userWise/admin/P`
         } else if (statusFilter === "A") {
-          url = "https://greenmin-apis.onrender.com/api/trees/find/A"
+          // url = "https://greenmin-apis.onrender.com/api/trees/find/A"
+          url = `${API_BASE_URL}/trees/find/userWise/admin/A`
+
         } else if (statusFilter === "E") {
-          url = "https://greenmin-apis.onrender.com/api/trees/find/E"
+          // url = "https://greenmin-apis.onrender.com/api/trees/find/E"
+          url = `${API_BASE_URL}/trees/find/userWise/admin/E`
         }
 
         const res = await fetch(url)
