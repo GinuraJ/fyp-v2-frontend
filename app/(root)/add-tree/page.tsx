@@ -5,9 +5,14 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { IconUpload } from "@tabler/icons-react"
-import { Camera,Leaf,Ruler,CircleCheck,RulerDimensionLine } from "lucide-react";
-import { AlertSuccessfull } from "@/components/alertSuccessfull"
-
+import {
+  CheckCircle2Icon,
+  AlertTriangleIcon,
+  XCircleIcon,
+  RulerDimensionLine,
+} from "lucide-react"
+import { AlertMessage } from "@/components/alertPost"
+import { AlertMessageDetection } from "@/components/alertDetection"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   SidebarInset,
@@ -38,13 +43,25 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 const addTreeSchema = z.object({
   file: z
     .custom<FileList>()
-    .refine((files) => files && files.length > 0, "File is required")
     .refine(
-      (files) => !files[0] || files[0].size <= 10 * 1024 * 1024,
+      (files) => files instanceof FileList && files.length > 0,
+      "Please upload an image first"
+    )
+    .refine(
+      (files) =>
+        files instanceof FileList &&
+        files[0] &&
+        files[0].size <= 10 * 1024 * 1024,
       "Max file size is 10MB"
     ),
 })
@@ -69,7 +86,23 @@ export default function AddTreePage() {
 
   const [isDetecting, setIsDetecting] = useState(false)
 
-  const [eventSuccess, setEventSuccess] = useState(false)
+  const [isMeasured, setIsMeasured] = useState(false)
+
+  const [detectionResultVarient, setDetectionResultVarient] = useState<AlertVariant>("success");
+  const [treeCountDescription, setTreeCountDescription] = useState("");
+  const [humanCountDescription, setHumanCountDescription] = useState("");
+  const [nearestTreeHeightDescription, setNearestTreeHeightDescription] = useState("");
+  const [humanHeightDescription, setHumanHeightDescription] = useState("");
+
+
+
+  type AlertVariant = "success" | "warning" | "error"
+
+  const [alert, setAlert] = useState<{
+    show: boolean
+    title: string
+    variant: AlertVariant
+  } | null>(null)
 
   const form = useForm<AddTreeFormValues>({
     resolver: zodResolver(addTreeSchema),
@@ -79,16 +112,13 @@ export default function AddTreePage() {
   })
 
   const onSubmit = async (data: AddTreeFormValues) => {
-    const imageFile = data.file?.[0];
-  
-    if (!imageFile) {
-      alert("Please select an image first");
-      return;
-    }
-  
     setIsDetecting(true);
-  
+    setIsMeasured(false);
+    setAlert(null); 
+
     try {
+      const imageFile = data.file?.[0];
+  
       const formData = new FormData();
       formData.append("file", imageFile);
   
@@ -100,24 +130,74 @@ export default function AddTreePage() {
       const result = await response.json();
   
       if (!response.ok) {
-        throw new Error(result.error || "Detection failed");
+        setAlert({
+          show: true,
+          title: "Detection failed",
+          variant: "error",
+        });
+        return;
+      }else{
+
+        if(result.treeCount >= 1 && result.humanCount >=1){
+          setDetectionResultVarient("success");
+        }else{
+          setDetectionResultVarient("warning");
+        }
+
+        if (result.treeCount == 0) {
+          setTreeCountDescription("No tree detected from the image");
+        } else if (result.treeCount == 1) {
+          setTreeCountDescription("Tree identified successfully.");
+        } else {
+          setTreeCountDescription(`${result.treeCount} trees identified from image`);
+        }
+
+        if (result.humanCount == 0) {
+          setHumanCountDescription("No reference object detected from the image");
+        } else if (result.humanCount == 1) {
+          setHumanCountDescription("Human reference objects identified successfully.");
+        } else {
+          setHumanCountDescription(`${result.humanCount} reference object identified from image`);
+        }
+
+        if(result.nearestTreeHeight != null){
+          setNearestTreeHeightDescription(`Nearest tree height in pixel is ${Number(result.nearestTreeHeight.toFixed(2))}`);
+        }else if(result.nearestTreeHeight == null){
+          setNearestTreeHeightDescription("Tree height in pixel cannot find due to no tree found");
+        }else{
+          setNearestTreeHeightDescription("Test");
+        }
+
+        if(result.tallestHumanHeight != null){
+          setHumanHeightDescription(`Human reference object height in pixel is ${Number(result.tallestHumanHeight.toFixed(2))}`);
+        }else if(result.tallestHumanHeight == null){
+          setHumanHeightDescription("Reference object height in pixel cannot find due to no object found");
+        }else{
+          setHumanHeightDescription("Test");
+        }
+
+        setDetectionResult(result);
+        setIsMeasured(true);
+
       }
   
-      console.log("Detection result:", result);
-  
-      alert("Detection Success:\n" + JSON.stringify(result, null, 2));
-  
-    } catch (error: any) {
-      console.error("Error:", error);
-      alert(error.message || "Something went wrong");
-  
+    } catch (error) {
+      setAlert({
+        show: true,
+        title: "Something went wrong. Please try again.",
+        variant: "error",
+      });
     } finally {
       setIsDetecting(false);
     }
   };
 
   const handleSaveTree = () => {
-    setEventSuccess(true);
+    setAlert({
+      show: true,
+      title: "Tree saved successfully",
+      variant: "success",
+    })
   }
   
 
@@ -185,7 +265,7 @@ export default function AddTreePage() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-[2fr_3fr] lg:px-6">
-                <Card className="min-h-[200px] md:col-start-1">
+                <Card className="min-h-[475px] md:col-start-1">
                   <CardHeader>
                     <CardTitle>Measure Tree Height</CardTitle>
                     <CardDescription>
@@ -300,14 +380,18 @@ export default function AddTreePage() {
                     </Form>
                   </CardContent>
                 </Card>
-                <Card className="min-h-[200px] md:col-start-2">
-                  <CardHeader>
-                    <CardTitle>Tree Details</CardTitle>
-                    <CardDescription>
-                      Sample form for tree information
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+
+                <div className="flex flex-col h-[475px] gap-4 md:col-start-2">
+
+                  {/* Tree Details Section */}
+                  <Card className="flex-1">
+                    <CardHeader>
+                      <CardTitle>Tree Details</CardTitle>
+                      <CardDescription>
+                        Sample form for tree information
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <label
@@ -388,25 +472,93 @@ export default function AddTreePage() {
                         />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-                <Card className="md:col-start-2">
+                    </CardContent>
+                  </Card>
+
+                  {/* Button Section */}
+                  <Card>
+                    <CardContent className="flex flex-col gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        Please complete required fields: Photo, Name and Species and click Save button.
+                      </p>
+
+                      <div className="flex gap-2">
+                        <Button size="lg" onClick={handleSaveTree}>
+                          Save Tree
+                        </Button>
+
+                        <Button size="lg" variant="secondary">
+                          Clear form
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+
+                <Card className="md:col-start-1">
                   <CardContent className="flex flex-col gap-4">
-                    <p className="text-sm text-muted-foreground">
-                    Please complete required fields: Photo, Name and Species and click Save button.
-                    </p>
-                    <div className="flex gap-2">
-                      <Button size="lg" onClick={handleSaveTree}>Save Tree</Button>
-                      <Button size="lg" variant="secondary">Clear form</Button>
-                      {eventSuccess && (
-                        <AlertSuccessfull
-                        title="New Tree Successful Saved"
-                        date={new Date}
-                  />
-                )}
-                    </div>
+                  <Accordion
+                    type="single"
+                    collapsible
+                    defaultValue="shipping"
+                    className="max-w-lg"
+                  >
+                    <AccordionItem value="shipping">
+                      <AccordionTrigger>What are your shipping options?</AccordionTrigger>
+                      <AccordionContent>
+                        We offer standard (5-7 days), express (2-3 days), and overnight
+                        shipping. Free shipping on international orders.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="returns">
+                      <AccordionTrigger>What is your return policy?</AccordionTrigger>
+                      <AccordionContent>
+                        Returns accepted within 30 days. Items must be unused and in original
+                        packaging. Refunds processed within 5-7 business days.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="support">
+                      <AccordionTrigger>How can I contact customer support?</AccordionTrigger>
+                      <AccordionContent>
+                        Reach us via email, live chat, or phone. We respond within 24 hours
+                        during business days.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                   </CardContent>
                 </Card>
+
+                {alert?.show && (
+                  <Card className="md:col-start-2 place-self-start w-full max-w-none">
+                    <CardContent className="flex flex-col gap-4 w-full">
+                      <AlertMessage
+                        title={alert.title}
+                        date={new Date()}
+                        variant={alert.variant}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+                {isMeasured && (
+                  <Card className="md:col-start-2 place-self-start w-full max-w-none">
+                    <CardContent className="flex flex-col gap-4 w-full">
+
+                      <AlertMessageDetection
+                        heading="Detection Result"
+                        variant={detectionResultVarient}
+                        description1={treeCountDescription}
+                        description2={humanCountDescription}
+                        description3={nearestTreeHeightDescription}
+                        description4={humanHeightDescription}
+                        description5={`Nearest Tree Bottom Bounding Box Line Y-axis number: ${detectionResult.nearestTreeBottomBoundingBoxLineYaxixNumber ?? "N/A"}`}
+                        description6={`Tallest Human Bottom Bounding Box Line Y-axis number: ${detectionResult.tallestHumanBottomBoundingBoxLineYaxixNumber ?? "N/A"}`}
+                      />
+
+                    </CardContent>
+                  </Card>
+                )}
+
               </div>
             </div>
           </div>
