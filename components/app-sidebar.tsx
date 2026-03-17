@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import {
   IconCamera,
   IconChartBar,
@@ -45,32 +46,44 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
+      roles: ["P"],
     },
     {
       title: "Add Tree",
       url: "/add-tree",
       icon: IconTree,
+      roles: ["P"],
     },
     
     {
       title: "Tree Repository",
       url: "/tree-repo",
       icon: IconListDetails,
+      roles: ["P"],
     },
     {
       title: "Order Place",
       url: "/order-place",
       icon: IconUsers,
+      roles: ["P"],
     },
     {
       title: "Analytics",
       url: "/analytics",
       icon: IconChartBar,
+      roles: ["A"],
+    },
+    {
+      title: "Tree Validate",
+      url: "/tree-validate",
+      icon: IconChartBar,
+      roles: ["A"],
     },
     {
       title: "My Wallet",
       url: "#",
       icon: IconFolder,
+      roles: ["P"],
     },
 
   ],
@@ -158,32 +171,49 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">GreenMint</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
-        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
-    </Sidebar>
-  )
-}
+// export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  export function AppSidebar({
+    ...props
+  }: React.ComponentProps<typeof Sidebar>) {
+  
+    const [role, setRole] = useState<string | null>(null)
+  
+    useEffect(() => {
+      const storedRole = localStorage.getItem("role")
+      setRole(storedRole)
+    }, [])
+  
+    if (!role) return null
+  
+    const navMainItems = data.navMain.filter(item =>
+      item.roles?.includes(role)
+    )
+  
+    return (
+      <Sidebar collapsible="offcanvas" {...props}>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="data-[slot=sidebar-menu-button]:!p-1.5"
+              >
+                <a href="#">
+                  <IconInnerShadowTop className="!size-5" />
+                  <span className="text-base font-semibold">GreenMint</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain items={navMainItems} />
+          {/* <NavDocuments items={data.documents} /> */}
+          {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser user={data.user} />
+        </SidebarFooter>
+      </Sidebar>
+    );
+  }

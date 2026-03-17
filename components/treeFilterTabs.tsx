@@ -22,24 +22,24 @@ export function TabsDemo() {
       
       try {
         // let url = `https://greenmin-apis.onrender.com/api/trees`
-        let url = `${API_BASE_URL}/trees/find/userwise/admin`
+        let url = `${API_BASE_URL}/trees/find/userwise/ADMIN`
         console.log(url)
 
         if (statusFilter === "P") {
           // url = "https://greenmin-apis.onrender.com/api/trees/find/P"
-          url = `${API_BASE_URL}/trees/find/userWise/admin/P`
+          url = `${API_BASE_URL}/trees/find/userWise/ADMIN/P`
         } else if (statusFilter === "A") {
           // url = "https://greenmin-apis.onrender.com/api/trees/find/A"
-          url = `${API_BASE_URL}/trees/find/userWise/admin/A`
+          url = `${API_BASE_URL}/trees/find/userWise/ADMIN/A`
 
         } else if (statusFilter === "E") {
           // url = "https://greenmin-apis.onrender.com/api/trees/find/E"
-          url = `${API_BASE_URL}/trees/find/userWise/admin/E`
+          url = `${API_BASE_URL}/trees/find/userWise/ADMIN/E`
         }
 
         const res = await fetch(url)
         if (!res.ok) {
-          throw new Error("Failed to fetch trees")
+          throw new Error("No trees found")
         }
 
         const json = await res.json()
@@ -102,3 +102,5 @@ export function TabsDemo() {
     </div>
   )
 }
+
+

@@ -16,6 +16,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+import { AlertMessage } from "@/components/alertPost"
+
+import { API_BASE_URL } from "@/lib/config";
+
+
 export default function LoginScreen() {
   const router = useRouter() 
 
@@ -23,20 +28,63 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
+  type AlertVariant = "success" | "warning" | "error"
+
+  const [alert, setAlert] = useState<{
+    show: boolean
+    title: string
+    variant: AlertVariant
+  } | null>(null)
+
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+
+    e.preventDefault();
   
-    setLoading(true)
+    setLoading(true);
   
     try {
-      router.push("/dashboard")
+      const res = await fetch(`${API_BASE_URL}/users/login`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json",},
+        body: JSON.stringify({ email, password }),
+      });
   
+      const data = await res.json();
+  
+      if (data.code === "0000" && data.userRole) {
+
+        setAlert({
+          show: true,
+          title: "Successfully logged in",
+          variant: "success",
+        });
+  
+        localStorage.setItem("email", data.email);
+        localStorage.setItem("role", data.userRole);
+  
+        setTimeout(() => {
+          if (data.userRole === "P") router.push("/dashboard");
+          else if (data.userRole === "A") router.push("/analytics");
+        }, 1000);
+  
+      } else {
+        setAlert({
+          show: true,
+          title: data.message || "Login failed",
+          variant: "error",
+        });
+      }
     } catch (error) {
-      alert("Login failed")
+      console.error(error);
+      setAlert({
+        show: true,
+        title: "Server error. Please try again.",
+        variant: "error",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
   
   return (
     <div className="min-h-screen flex">
@@ -50,6 +98,8 @@ export default function LoginScreen() {
       <div className="flex-1 flex items-center justify-center p-6">
       
         <Card className="w-full max-w-sm">
+      <form onSubmit={handleLogin}>
+
           <CardHeader>
             <CardTitle>Login to GreenMint</CardTitle>
             <CardDescription>
@@ -64,14 +114,15 @@ export default function LoginScreen() {
             </CardAction>
           </CardHeader>
           <CardContent>
-            <form>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6 mt-5">
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="m@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
@@ -85,15 +136,19 @@ export default function LoginScreen() {
                       Forgot your password?
                     </a>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required 
+                  />
                 </div>
               </div>
-            </form>
           </CardContent>
-          <CardFooter className="flex-col gap-2">
-            {/* <Button type="submit" className="w-full"> */}
+          {/* <CardFooter className="flex-col gap-2">
             <Button
-              type="button"
+              type="submit"
               className="w-full"
               disabled={loading}
               onClick={handleLogin}
@@ -103,7 +158,39 @@ export default function LoginScreen() {
             <Button variant="outline" className="w-full">
               Clear Form
             </Button>
+          </CardFooter> */}
+          <CardFooter className="flex-col gap-2 mt-5">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              type="button"
+              onClick={() => {
+                setEmail("");
+                setPassword("");
+                setAlert(null);
+              }}
+            >
+              Clear Form
+            </Button>
+            {alert?.show && (
+              <AlertMessage
+                title={alert.title}
+                date={new Date()}
+                variant={alert.variant}
+              />
+            )}
+
           </CardFooter>
+        </form>
+
         </Card>
 
       </div>

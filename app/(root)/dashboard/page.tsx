@@ -1,3 +1,5 @@
+"use client"
+import { useEffect, useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
@@ -11,6 +13,21 @@ import {
 import data from "./data.json"
 
 export default function Page() {
+
+  const [email, setEmail] = useState<string | null>(null)
+  const [role, setRole] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("email")
+    const storedRole = localStorage.getItem("role")
+    setEmail(storedEmail)
+    setRole(storedRole)
+    setMounted(true)
+  }, [])
+
+  if (!mounted || !role) return null;
+
   return (
     <SidebarProvider
       style={
@@ -20,7 +37,8 @@ export default function Page() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      {/* <AppSidebar variant="inset" /> */}
+      <AppSidebar variant="inset"/>
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

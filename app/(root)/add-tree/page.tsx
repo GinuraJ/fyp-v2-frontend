@@ -6,9 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { IconUpload } from "@tabler/icons-react"
 import {
-  CheckCircle2Icon,
-  AlertTriangleIcon,
-  XCircleIcon,
   RulerDimensionLine,
 } from "lucide-react"
 import { AlertMessage } from "@/components/alertPost"
@@ -50,6 +47,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 
+
+import { API_BASE_URL } from "@/lib/config";
+
 const addTreeSchema = z.object({
   file: z
     .custom<FileList>()
@@ -75,6 +75,19 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function AddTreePage() {
+
+  const [email, setEmail] = useState<string | null>(null)
+  const [role, setRole] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("email")
+    const storedRole = localStorage.getItem("role")
+    setEmail(storedEmail)
+    setRole(storedRole)
+    setMounted(true)
+  }, [])
+
   const [detectionResult, setDetectionResult] = useState<any>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -85,8 +98,8 @@ export default function AddTreePage() {
   const fileInputId = "file-upload-add-tree"
 
   const [isDetecting, setIsDetecting] = useState(false)
-
   const [isMeasured, setIsMeasured] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const [detectionResultVarient, setDetectionResultVarient] = useState<AlertVariant>("success");
   const [treeCountDescription, setTreeCountDescription] = useState("");
@@ -94,6 +107,84 @@ export default function AddTreePage() {
   const [nearestTreeHeightDescription, setNearestTreeHeightDescription] = useState("");
   const [humanHeightDescription, setHumanHeightDescription] = useState("");
 
+  const [userHeight, setUserHeight] = useState<number>(170)
+
+  const [treeForm, setTreeForm] = useState({
+    name: "",
+    species: "",
+    woodDensity: "",
+    age: "",
+    diameter: "",
+    height: "",
+    geoLocation: "",
+    status: "P",
+    enterUser: "ADMIN",
+  })
+
+  const speciesOptions = [
+    { label: "Mango", woodDensity: "0.60" },
+    { label: "Jackfruit", woodDensity: "0.65" },
+    { label: "Coconut", woodDensity: "0.80" },
+    { label: "Rubber", woodDensity: "0.72" },
+  ] as const
+
+  useEffect(() => {
+
+    const fetchUserHeight = async () => {
+      try {
+  
+        const response = await fetch("http://localhost:8080/api/users/email/w@gmail.com")
+        const user = await response.json()
+  
+        if (user.height) {
+          setUserHeight(user.height)
+        }
+  
+      } catch (error) {
+        console.error("Failed to fetch user height", error)
+      }
+    }
+  
+    fetchUserHeight()
+  
+  }, [])
+
+  const resetForm = () => {
+    setTreeForm({
+      name: "",
+      species: "",
+      woodDensity: "",
+      age: "",
+      diameter: "",
+      height: "",
+      geoLocation: "",
+      status: "P",
+      enterUser: "ADMIN",
+    })
+  
+    form.reset()
+  
+    setFilePreview(null)
+    setFileName(null)
+    setFileSize(null)
+  }
+
+  function calculateTreeHeight(
+    treePixelHeight: number,
+    humanPixelHeight: number
+  ): number {
+  
+    if (!treePixelHeight || !humanPixelHeight) {
+      throw new Error("Pixel heights are required")
+    }
+  
+    const pixelToCmRatio = userHeight / humanPixelHeight
+    const treeHeightCm = treePixelHeight * pixelToCmRatio
+    const treeHeightMeters = treeHeightCm / 100
+  
+    // return treeHeightMeters
+    return treeHeightCm;
+  }
 
 
   type AlertVariant = "success" | "warning" | "error"
@@ -115,6 +206,7 @@ export default function AddTreePage() {
     setIsDetecting(true);
     setIsMeasured(false);
     setAlert(null); 
+    var actualTreeHeight = 0;
 
     try {
       const imageFile = data.file?.[0];
@@ -139,6 +231,10 @@ export default function AddTreePage() {
       }else{
 
         if(result.treeCount >= 1 && result.humanCount >=1){
+          actualTreeHeight = calculateTreeHeight(
+            result.nearestTreeHeight,
+            result.tallestHumanHeight
+          )
           setDetectionResultVarient("success");
         }else{
           setDetectionResultVarient("warning");
@@ -161,9 +257,14 @@ export default function AddTreePage() {
         }
 
         if(result.nearestTreeHeight != null){
-          setNearestTreeHeightDescription(`Nearest tree height in pixel is ${Number(result.nearestTreeHeight.toFixed(2))}`);
+          // setNearestTreeHeightDescription(`Nearest tree height actual height is ${Number(result.nearestTreeHeight.toFixed(2))}`);
+          if(result.tallestHumanHeight != null){
+            setNearestTreeHeightDescription(`Nearest tree actual height is ${Number(actualTreeHeight).toFixed(2)} centimeters`);
+          }else{
+            setNearestTreeHeightDescription(`Nearest tree actual height is unable to measure due to reference object not found`);
+          }
         }else if(result.nearestTreeHeight == null){
-          setNearestTreeHeightDescription("Tree height in pixel cannot find due to no tree found");
+          setNearestTreeHeightDescription("Tree height cannot find due to no tree found");
         }else{
           setNearestTreeHeightDescription("Test");
         }
@@ -192,14 +293,84 @@ export default function AddTreePage() {
     }
   };
 
-  const handleSaveTree = () => {
-    setAlert({
-      show: true,
-      title: "Tree saved successfully",
-      variant: "success",
-    })
-  }
+  const handleSaveTree = async () => {
+    try {
+      setIsSaving(true)
+
+      if (!fileName || !form.getValues("file")) {
+        setAlert({
+          show: true,
+          title: "Please upload an image",
+          variant: "warning",
+        })
+        return
+      }
+
+      if (
+        !treeForm.name ||
+        !treeForm.species ||
+        !treeForm.age ||
+        !treeForm.diameter ||
+        !treeForm.height ||
+        !treeForm.geoLocation
+      ) {
+        setAlert({
+          show: true,
+          title: "Please fill all required fields before saving",
+          variant: "warning",
+        })
+        return
+      }
+
+      const imageFile = form.getValues("file")?.[0]
   
+      const formData = new FormData()
+  
+      formData.append("image", imageFile) 
+      formData.append("name", treeForm.name)
+      formData.append("species", treeForm.species)
+      formData.append("woodDensity", treeForm.woodDensity)
+      formData.append("age", treeForm.age)
+      formData.append("diameter", treeForm.diameter)
+      formData.append("height", treeForm.height)
+      formData.append("geoLocation", treeForm.geoLocation)
+      formData.append("status", treeForm.status)
+      formData.append("enterUser", treeForm.enterUser)
+  
+      const response = await fetch(`${API_BASE_URL}/trees/addTree`, {
+        method: "POST",
+        body: formData,
+      })
+  
+      const result = await response.json()
+  
+      if (!response.ok) {
+        setAlert({
+          show: true,
+          title: result.message || "Failed to save tree",
+          variant: "error",
+        })
+        return
+      }
+  
+      setAlert({
+        show: true,
+        title: "Tree saved successfully",
+        variant: "success",
+      })
+  
+    } catch (error) {
+      setAlert({
+        show: true,
+        title: "Something went wrong"+ `${error}`,
+        variant: "error",
+      })
+    }finally{
+      setIsSaving(false)
+      resetForm()
+    }
+  }
+
 
   const processFiles = (files: FileList | null, onChange: (value: FileList) => void) => {
     if (files && files.length > 0) {
@@ -249,6 +420,8 @@ export default function AddTreePage() {
     }
   }, [filePreview])
 
+  if (!mounted || !role) return null;
+
   return (
     <SidebarProvider
       style={
@@ -258,7 +431,7 @@ export default function AddTreePage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" role={role} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -403,20 +576,37 @@ export default function AddTreePage() {
                         <Input
                           id="tree-name"
                           placeholder="Enter tree name"
+                          value={treeForm.name}
+                          onChange={(e) =>
+                            setTreeForm({ ...treeForm, name: e.target.value })
+                          }
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">
                           Tree species
                         </label>
-                        <Select defaultValue="oak">
+                        <Select
+                        value={treeForm.woodDensity}
+                        onValueChange={(woodDensity) => {
+                          const selected = speciesOptions.find(
+                            (o) => o.woodDensity === woodDensity
+                          )
+                          setTreeForm({
+                            ...treeForm,
+                            woodDensity,
+                            species: selected?.label ?? "",
+                          })
+                        }}>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select species" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="oak">Oak</SelectItem>
-                            <SelectItem value="pine">Pine</SelectItem>
-                            <SelectItem value="maple">Maple</SelectItem>
+                            {speciesOptions.map((opt) => (
+                              <SelectItem key={opt.woodDensity} value={opt.woodDensity}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -431,6 +621,10 @@ export default function AddTreePage() {
                           id="tree-diameter"
                           type="number"
                           placeholder="0.0"
+                          value={treeForm.diameter}
+                          onChange={(e) =>
+                            setTreeForm({ ...treeForm, diameter: e.target.value })
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -438,12 +632,16 @@ export default function AddTreePage() {
                           className="text-sm font-medium"
                           htmlFor="tree-height"
                         >
-                          Height (m)
+                          Height (cm)
                         </label>
                         <Input
                           id="tree-height"
                           type="number"
                           placeholder="0.0"
+                          value={treeForm.height}
+                          onChange={(e) =>
+                            setTreeForm({ ...treeForm, height: e.target.value })
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -457,6 +655,10 @@ export default function AddTreePage() {
                           id="tree-age"
                           type="number"
                           placeholder="0"
+                          value={treeForm.age}
+                          onChange={(e) =>
+                            setTreeForm({ ...treeForm, age: e.target.value })
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -469,6 +671,10 @@ export default function AddTreePage() {
                         <Input
                           id="tree-location"
                           placeholder="Latitude, Longitude"
+                          value={treeForm.geoLocation}
+                          onChange={(e) =>
+                            setTreeForm({ ...treeForm, geoLocation: e.target.value })
+                          }
                         />
                       </div>
                     </div>
@@ -483,8 +689,33 @@ export default function AddTreePage() {
                       </p>
 
                       <div className="flex gap-2">
-                        <Button size="lg" onClick={handleSaveTree}>
-                          Save Tree
+                        <Button size="lg" onClick={handleSaveTree} disabled={isSaving}>
+                          {isSaving ? (
+                            <>
+                              <svg
+                                className="animate-spin h-5 w-5 mr-2 text-white"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  fill="none"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                />
+                              </svg>
+                              Saving...
+                            </>
+                          ) : (
+                            <>Save Tree</>
+                          )}
                         </Button>
 
                         <Button size="lg" variant="secondary">
@@ -551,8 +782,8 @@ export default function AddTreePage() {
                         description2={humanCountDescription}
                         description3={nearestTreeHeightDescription}
                         description4={humanHeightDescription}
-                        description5={`Nearest Tree Bottom Bounding Box Line Y-axis number: ${detectionResult.nearestTreeBottomBoundingBoxLineYaxixNumber ?? "N/A"}`}
-                        description6={`Tallest Human Bottom Bounding Box Line Y-axis number: ${detectionResult.tallestHumanBottomBoundingBoxLineYaxixNumber ?? "N/A"}`}
+                        description5={`Nearest Tree Bottom Bounding Box Line Y-axis number: ${Number(detectionResult.nearestTreeBottomBoundingBoxLineYaxixNumber).toFixed(2) ?? "N/A"}`}
+                        description6={`Tallest Human Bottom Bounding Box Line Y-axis number: ${Number(detectionResult.tallestHumanBottomBoundingBoxLineYaxixNumber).toFixed(2) ?? "N/A"}`}
                       />
 
                     </CardContent>
