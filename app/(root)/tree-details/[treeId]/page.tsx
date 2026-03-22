@@ -108,7 +108,6 @@ export default function TreeDetails() {
         return
       }
 
-      // 1) Create credit ledger entry
       const creditLedgerRes = await fetch(`${API_BASE_URL}/creditLedger`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

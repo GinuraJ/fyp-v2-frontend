@@ -132,7 +132,7 @@ export default function AnalyticsPage() {
         quantity: quantity,
         executeFrom,
         executeTo,
-        balanceQuantity: "0",
+        balanceQuantity: quantity,
         executeStatus: executeStatus, 
         userId: "Ginura", 
       };
@@ -275,8 +275,8 @@ export default function AnalyticsPage() {
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Single</SelectItem>
-                          <SelectItem value="processing">
+                          <SelectItem value="S">Single</SelectItem>
+                          <SelectItem value="M">
                             Multiple
                           </SelectItem>
                         </SelectContent>
