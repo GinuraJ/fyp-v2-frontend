@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OrderTable, type OrderRow } from "@/components/OrdersTable"
+import { AlertMessage } from "@/components/alertPost"
 
 import { API_BASE_URL } from "@/lib/config";
 
@@ -25,13 +26,25 @@ export function TabsOrders({ refreshKey = 0 }: { refreshKey?: number }) {
         console.log(url)
 
         const res = await fetch(url)
+
+        if (res.status === 404) {
+          setData([])
+          return
+        }
+
         if (!res.ok) {
-          throw new Error("Failed to fetch trees")
+          const body = await res.json().catch(() => ({}))
+          throw new Error(
+            typeof body?.message === "string"
+              ? body.message
+              : "Failed to fetch orders"
+          )
         }
 
         const json = await res.json()
+        const list = Array.isArray(json) ? json : []
 
-        const mapped: OrderRow[] = (json as any[]).map((order) => ({
+        const mapped: OrderRow[] = list.map((order: any) => ({
           _id: order._id,
           orderId: order.orderId,
           buySell: order.buySell,
@@ -77,11 +90,15 @@ export function TabsOrders({ refreshKey = 0 }: { refreshKey?: number }) {
       {loading && (
         <div className="text-sm text-muted-foreground">Loading orders...</div>
       )}
-      {error && (
-        <div className="text-sm text-destructive">Error: {error}</div>
+      {!loading && error && (
+        <AlertMessage title={error} variant="error" />
       )}
 
-      {!loading && !error && <OrderTable data={data} />}
+      {!loading && !error && data.length === 0 && (
+        <AlertMessage title="No orders found" variant="warning" />
+      )}
+
+      {!loading && !error && data.length > 0 && <OrderTable data={data} />}
     </div>
   )
 }

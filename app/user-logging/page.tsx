@@ -1,7 +1,8 @@
 "use client"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -36,6 +37,15 @@ export default function LoginScreen() {
     variant: AlertVariant
   } | null>(null)
 
+  useEffect(() => {
+    const role = localStorage.getItem("role")
+    const storedEmail = localStorage.getItem("email")
+    if (!role || !storedEmail) return
+    if (role === "P") router.replace("/dashboard")
+    else if (role === "A") router.replace("/analytics")
+    else router.replace("/dashboard")
+  }, [router])
+
   const handleLogin = async (e: React.FormEvent) => {
 
     e.preventDefault();
@@ -59,8 +69,14 @@ export default function LoginScreen() {
           variant: "success",
         });
   
-        localStorage.setItem("email", data.email);
+        localStorage.setItem("email", data.email ?? "");
         localStorage.setItem("role", data.userRole);
+        const displayName =
+          (typeof data.name === "string" && data.name) ||
+          (typeof data.userName === "string" && data.userName) ||
+          (typeof data.fullName === "string" && data.fullName) ||
+          ""
+        localStorage.setItem("userName", displayName)
   
         setTimeout(() => {
           if (data.userRole === "P") router.push("/dashboard");
@@ -89,10 +105,15 @@ export default function LoginScreen() {
   return (
     <div className="min-h-screen flex">
 
-      <div className="hidden lg:flex w-1/2 bg-muted items-center justify-center p-10">
-        <div className="text-center space-y-6">
-
-        </div>
+      <div className="relative hidden min-h-screen w-1/2 overflow-hidden bg-muted lg:flex">
+        <Image
+          src="/images/logoTest.jpg"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+          sizes="50vw"
+        />
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6">
@@ -120,7 +141,7 @@ export default function LoginScreen() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="greenMint@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import Link from "next/link"
 import type React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -123,7 +124,6 @@ export default function TreeDetails() {
         throw new Error(msg || "Failed to create credit ledger entry")
       }
 
-      // 2) Update tree status to E (added to wallet)
       const updateStatusRes = await fetch(`${API_BASE_URL}/trees/update/${id}/E`, {
         method: "POST",
       })
@@ -132,7 +132,6 @@ export default function TreeDetails() {
         throw new Error(msg || "Failed to update tree status")
       }
 
-      // 3) Reflect changes in UI immediately
       setTree((prev: any) => (prev ? { ...prev, status: "E" } : prev))
     } catch (err) {
       const message =
@@ -162,10 +161,14 @@ export default function TreeDetails() {
         <SiteHeader />
 
         <div className="p-6">
+          <div className="mb-6 flex flex-col gap-2">
+            <Button variant="ghost" className="w-fit -ml-2" asChild>
+              <Link href="/tree-repo">← Back to tree repository</Link>
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            {/* Image area */}
             <div className="md:col-span-1 md:row-span-2">
               <Card className="shadow-md rounded-2xl h-full">
                 <CardHeader>
@@ -189,7 +192,6 @@ export default function TreeDetails() {
               </Card>
             </div>
 
-            {/* Basic tree details area */}
             <div className="md:col-span-2">
               <Card className="shadow-md rounded-2xl">
                 <CardHeader>
@@ -245,7 +247,6 @@ export default function TreeDetails() {
               </Card>
             </div>
 
-            {/* Cabon credit details area */}
             <div className="md:col-span-2">
               <Card className="shadow-md rounded-2xl">
                 <CardHeader>
@@ -303,9 +304,9 @@ export default function TreeDetails() {
 
             <div className="md:col-start-2 md:col-span-2">
               <Card className="shadow-md rounded-2xl">
-                <CardHeader>
-                    <CardTitle>Tree Status</CardTitle>
-                </CardHeader>
+                {/* <CardHeader>
+                  <CardTitle>Tree Status</CardTitle>
+                </CardHeader> */}
                 <CardContent>
                   {tree?.status === "P" && (
                     <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800">

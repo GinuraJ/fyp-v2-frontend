@@ -293,16 +293,17 @@ export default function AddTreePage() {
     }
   };
 
+  const showSaveAlert = (title: string, variant: AlertVariant) => {
+    setIsMeasured(false)
+    setAlert({ show: true, title, variant })
+  }
+
   const handleSaveTree = async () => {
     try {
       setIsSaving(true)
 
       if (!fileName || !form.getValues("file")) {
-        setAlert({
-          show: true,
-          title: "Please upload an image",
-          variant: "warning",
-        })
+        showSaveAlert("Please upload an image", "warning")
         return
       }
 
@@ -314,11 +315,10 @@ export default function AddTreePage() {
         !treeForm.height ||
         !treeForm.geoLocation
       ) {
-        setAlert({
-          show: true,
-          title: "Please fill all required fields before saving",
-          variant: "warning",
-        })
+        showSaveAlert(
+          "Please fill all required fields before saving",
+          "warning"
+        )
         return
       }
 
@@ -345,26 +345,19 @@ export default function AddTreePage() {
       const result = await response.json()
   
       if (!response.ok) {
-        setAlert({
-          show: true,
-          title: result.message || "Failed to save tree",
-          variant: "error",
-        })
+        showSaveAlert(
+          result.message || "Failed to save tree",
+          "error"
+        )
         return
       }
-  
-      setAlert({
-        show: true,
-        title: "Tree saved successfully",
-        variant: "success",
-      })
-  
+
+      showSaveAlert("Tree saved successfully", "success")
     } catch (error) {
-      setAlert({
-        show: true,
-        title: "Something went wrong"+ `${error}`,
-        variant: "error",
-      })
+      showSaveAlert(
+        "Something went wrong" + `${error}`,
+        "error"
+      )
     }finally{
       setIsSaving(false)
       resetForm()

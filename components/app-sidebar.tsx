@@ -14,6 +14,8 @@ import {
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconArrowsExchange,
+  IconMessage,
   IconReport,
   IconSearch,
   IconSettings,
@@ -36,11 +38,6 @@ import {
 } from "@/components/ui/sidebar"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -65,6 +62,18 @@ const data = {
       title: "Order Place",
       url: "/order-place",
       icon: IconUsers,
+      roles: ["P"],
+    },
+    {
+      title: "Trades",
+      url: "/trades",
+      icon: IconArrowsExchange,
+      roles: ["P"],
+    },
+    {
+      title: "Messages",
+      url: "/message",
+      icon: IconMessage,
       roles: ["P"],
     },
     {
@@ -177,15 +186,35 @@ const data = {
   }: React.ComponentProps<typeof Sidebar>) {
   
     const [role, setRole] = useState<string | null>(null)
-  
+    const [user, setUser] = useState<{
+      name: string
+      email: string
+      avatar: string
+    }>({ name: "", email: "", avatar: "" })
+
     useEffect(() => {
       const storedRole = localStorage.getItem("role")
+      const storedEmail = localStorage.getItem("email") ?? ""
+      const storedName = localStorage.getItem("userName")?.trim() ?? ""
       setRole(storedRole)
+
+      const displayName =
+        storedName ||
+        (storedEmail.includes("@")
+          ? storedEmail.split("@")[0]
+          : storedEmail) ||
+        "User"
+
+      setUser({
+        name: displayName,
+        email: storedEmail,
+        avatar: "",
+      })
     }, [])
-  
+
     if (!role) return null
-  
-    const navMainItems = data.navMain.filter(item =>
+
+    const navMainItems = data.navMain.filter((item) =>
       item.roles?.includes(role)
     )
   
@@ -212,7 +241,7 @@ const data = {
           {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={data.user} />
+          <NavUser user={user} />
         </SidebarFooter>
       </Sidebar>
     );

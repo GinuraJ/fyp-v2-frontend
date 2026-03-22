@@ -77,43 +77,43 @@ export default function AnalyticsPage() {
         let executeTo: string;
     
         const now = new Date();
-    
+
+        const startOfToday = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          0,
+          0,
+          0,
+          0
+        )
+        const endOfToday = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999
+        )
+
         if (expireType === "T") {
-          executeFrom = now.toISOString();
-          const endOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            23,
-            59,
-            59
-          );
-          executeTo = endOfToday.toISOString();
+          // Today: from = start of today, to = end of today (same calendar day)
+          executeFrom = startOfToday.toISOString()
+          executeTo = endOfToday.toISOString()
         } else if (expireType === "N") {
-          const startOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            0,
-            0,
-            0
-          );
-          const endOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            23,
-            59,
-            59
-          );
-          executeFrom = startOfToday.toISOString();
-          executeTo = endOfToday.toISOString();
+          // Never expire: from = today, to = same calendar day one year later (end of that day)
+          const endOneYearLater = new Date(startOfToday)
+          endOneYearLater.setFullYear(endOneYearLater.getFullYear() + 1)
+          endOneYearLater.setHours(23, 59, 59, 999)
+          executeFrom = startOfToday.toISOString()
+          executeTo = endOneYearLater.toISOString()
         } else if (expireType === "P") {
-          executeFrom = fromDate ? new Date(fromDate).toISOString() : "";
-          executeTo =toDate ? new Date(toDate).toISOString() : "";
+          executeFrom = fromDate ? new Date(fromDate).toISOString() : ""
+          executeTo = toDate ? new Date(toDate).toISOString() : ""
         } else {
-            executeFrom = "";
-            executeTo ="";
+          executeFrom = ""
+          executeTo = ""
         }
 
         if (!minPrice || !maxPrice || !quantity || !executeStatus) {

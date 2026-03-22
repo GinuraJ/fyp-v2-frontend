@@ -150,7 +150,6 @@ export default function TreeDetailsValidate() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 
-            {/* Image area */}
             <div className="md:col-span-1 md:row-span-2">
               <Card className="shadow-md rounded-2xl h-full flex flex-col">
                 <CardHeader>
@@ -174,7 +173,6 @@ export default function TreeDetailsValidate() {
               </Card>
             </div>
 
-            {/* Basic tree details area */}
             <div className="md:col-span-2">
               <Card className="shadow-md rounded-2xl">
                 <CardHeader>
@@ -230,7 +228,6 @@ export default function TreeDetailsValidate() {
               </Card>
             </div>
 
-            {/* Cabon credit details area */}
             <div className="md:col-span-2">
               <Card className="shadow-md rounded-2xl">
                 <CardHeader>
@@ -286,7 +283,6 @@ export default function TreeDetailsValidate() {
               </Card>
             </div>
 
-            {/* Approve / Reject actions */}
             <div className="md:col-start-2 md:col-span-2">
               <Card className="shadow-md rounded-2xl">
                 <CardHeader>
@@ -337,23 +333,6 @@ export default function TreeDetailsValidate() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* <div className="md:col-start-2 md:col-span-2">
-              <Card className="shadow-md rounded-2xl">
-                <CardHeader>
-                    <CardTitle>Tree Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Alert className="bg-green-50 border-green-200 text-green-700">
-                    <CheckCircle2Icon/>
-                    <AlertTitle>Tree Status</AlertTitle>
-                    <AlertDescription>
-                      This tree is healthy and verified for carbon credit calculation.
-                    </AlertDescription>
-                  </Alert>
-                </CardContent>
-              </Card>
-            </div> */}
 
           </div>
 
