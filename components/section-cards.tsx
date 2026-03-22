@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,21 +11,56 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export function SectionCards() {
+interface SectionCardsProps {
+  email: string | null
+  role: string | null
+}
+
+import { API_BASE_URL } from "@/lib/config";
+
+
+export function SectionCards({ email, role }: SectionCardsProps) {
+  const [cashBalance, setCashBalance] = useState(0)
+  const [creditBalance, setCreditBalance] = useState(0)
+  const [totalTrees, setTotalTrees] = useState(0)
+  const [totalOpenOrders, setTotalOpenOrders] = useState(0)
+
+  useEffect(() => {
+    if (!email || !role) return
+
+    // Fetch Cash Balance
+    fetch(`${API_BASE_URL}/cash/${email}`)
+      .then((res) => res.json())
+      .then((data) => setCashBalance(data?.data?.totalBalance || 0))
+      .catch((err) => console.error("Cash API error:", err))
+
+    // Fetch Credit Balance
+    fetch(`${API_BASE_URL}/creditLedger/${email}`)
+      .then((res) => res.json())
+      .then((data) => setCreditBalance(data?.data?.totalBalance || 0))
+      .catch((err) => console.error("Credit API error:", err))
+
+    // Fetch Total Trees (use role as enterUser)
+    fetch(`${API_BASE_URL}/trees/total/${email}`)
+      .then((res) => res.json())
+      .then((data) => setTotalTrees(data?.data?.totalTrees || 0))
+      .catch((err) => console.error("Trees API error:", err))
+
+    // Fetch Total Open Orders
+    fetch(`${API_BASE_URL}/order/find/totalOpen/${email}`)
+      .then((res) => res.json())
+      .then((data) => setTotalOpenOrders(data?.data?.totalOpenOrders || 0))
+      .catch((err) => console.error("Orders API error:", err))
+  }, [email, role])       
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
+          <CardDescription>Total Cash Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+            ${cashBalance.toLocaleString()}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -35,18 +71,13 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>New Customers</CardDescription>
+          <CardDescription>Total Credit Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
+            {creditBalance.toLocaleString()}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingDown />
-              -20%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -57,38 +88,28 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
+          <CardDescription>Total Tree Count</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+            {totalTrees.toLocaleString()}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
             Strong user retention <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
+          <div className="text-muted-foreground">Engagement exceeds targets</div>
         </CardFooter>
       </Card>
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
+          <CardDescription>Total Pending Orders</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
+            {totalOpenOrders.toLocaleString()}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +4.5%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">

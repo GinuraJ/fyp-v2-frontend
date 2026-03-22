@@ -94,7 +94,7 @@ export function OrderTable({ data, onView }: OrderTableProps) {
               <TableHead>To</TableHead>
               <TableHead>Execute Status</TableHead>
               <TableHead>Enter Date</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              {/* <TableHead className="text-right">Action</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,7 +114,7 @@ export function OrderTable({ data, onView }: OrderTableProps) {
                   <TableCell>{formatDate(row.executeTo)}</TableCell>
                   <TableCell>{row.executeStatus}</TableCell>
                   <TableCell>{formatDate(row.enterDate)}</TableCell>
-                  <TableCell className="text-right">
+                  {/* <TableCell className="text-right">
                     <Button
                       size="sm"
                       variant="outline"
@@ -122,7 +122,7 @@ export function OrderTable({ data, onView }: OrderTableProps) {
                     >
                       View
                     </Button>
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               )
             })}

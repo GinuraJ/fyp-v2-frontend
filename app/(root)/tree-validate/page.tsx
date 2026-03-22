@@ -1,31 +1,12 @@
-"use client"
-import { useEffect, useState } from "react"
-
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { SiteHeader } from "@/components/site-header"
-import { TabsDemo } from "@/components/treeFilterTabs"
+import { TablePendingTrees } from "@/components/pendingTreeesTrable"
 
-export default function AnalyticsPage() {
-
-  const [email, setEmail] = useState<string | null>(null)
-  const [role, setRole] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    const storedEmail = localStorage.getItem("email")
-    const storedRole = localStorage.getItem("role")
-    setEmail(storedEmail)
-    setRole(storedRole)
-    setMounted(true)
-  }, [])
-
-  if (!mounted || !role) 
-    return null;
-
+export default function TreeValidatePage() {
   return (
     <SidebarProvider
       style={
@@ -35,13 +16,13 @@ export default function AnalyticsPage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+            <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
-              <TabsDemo />
+                <TablePendingTrees />
             </div>
           </div>
         </div>

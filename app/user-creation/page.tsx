@@ -89,61 +89,6 @@ export default function SignupPage() {
     }
   }
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault()
-  
-  //   try {
-  //     setLoading(true)
-  
-  //     const payload = {
-  //       firstName: formData.firstName,
-  //       lastName: formData.lastName,
-  //       email: formData.email,
-  //       mobile: formData.mobile,
-  //       password : formData.password,
-  //       nic : formData.nic,
-  //       dob: formData.dob,
-  //       address1: formData.address1, 
-  //       address2: formData.address2, 
-  //       address3: formData.address3,
-  //       district: formData.district,
-  //       height: formData.height
-  //     };
-  
-  //     const response = await fetch(`${API_BASE_URL}/users/signup`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(payload),
-  //     });
-  
-  //     const data = await response.json();
-  
-  //     if (data.code === "0000") {
-  //       // setAlert({
-  //       //   show: true,
-  //       //   title: "Order placed successfully",
-  //       //   variant: "success",
-  //       // })
-  //       console.log("User success:", data.order);
-  //     } else {
-  //       // setAlert({
-  //       //   show: true,
-  //       //   title: data.message || "Failed to place order",
-  //       //   variant: "error",
-  //       // })
-  //     }
-  
-  //   } catch (error) {
-  //     console.error(error)
-  //     alert("Signup failed")
-  
-  //   } finally {
-  //     // setLoading(false)
-  //   }
-  // }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
   

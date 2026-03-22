@@ -1,8 +1,7 @@
  "use client"
 
 import type React from "react"
-import { useState } from "react"
-// import { AlertSuccessfull } from "@/components/alertSuccessfull"
+import { useEffect,useState } from "react"
 import { AlertMessage } from "@/components/alertPost"
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -30,13 +29,26 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TabsOrders } from "@/components/orderFilterTabs"
 
-
 import { API_BASE_URL } from "@/lib/config";
 
 type ExpireType = "T" | "N" | "P"
 type OrderType = "B" | "S"
 
 export default function AnalyticsPage() {
+
+  const [email, setEmail] = useState<string | null>(null)
+  const [role, setRole] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("email")
+    const storedRole = localStorage.getItem("role")
+    setEmail(storedEmail)
+    setRole(storedRole)
+    setMounted(true)
+  }, [])
+
+  
   const [maxPrice, setMaxPrice] = useState("")
   const [minPrice, setMinPrice] = useState("")
   const [quantity, setQuantity] = useState("")
@@ -46,7 +58,6 @@ export default function AnalyticsPage() {
   const [toDate, setToDate] = useState("")
   const [orderType, setOrderType] = useState<OrderType>("B")
 
-  // const [eventSuccess, setEventSuccess] = useState(false)
   type AlertVariant = "success" | "warning" | "error"
 
   const [alert, setAlert] = useState<{
@@ -66,43 +77,43 @@ export default function AnalyticsPage() {
         let executeTo: string;
     
         const now = new Date();
-    
+
+        const startOfToday = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          0,
+          0,
+          0,
+          0
+        )
+        const endOfToday = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999
+        )
+
         if (expireType === "T") {
-          executeFrom = now.toISOString();
-          const endOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            23,
-            59,
-            59
-          );
-          executeTo = endOfToday.toISOString();
+          // Today: from = start of today, to = end of today (same calendar day)
+          executeFrom = startOfToday.toISOString()
+          executeTo = endOfToday.toISOString()
         } else if (expireType === "N") {
-          const startOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            0,
-            0,
-            0
-          );
-          const endOfToday = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            23,
-            59,
-            59
-          );
-          executeFrom = startOfToday.toISOString();
-          executeTo = endOfToday.toISOString();
+          // Never expire: from = today, to = same calendar day one year later (end of that day)
+          const endOneYearLater = new Date(startOfToday)
+          endOneYearLater.setFullYear(endOneYearLater.getFullYear() + 1)
+          endOneYearLater.setHours(23, 59, 59, 999)
+          executeFrom = startOfToday.toISOString()
+          executeTo = endOneYearLater.toISOString()
         } else if (expireType === "P") {
-          executeFrom = fromDate ? new Date(fromDate).toISOString() : "";
-          executeTo =toDate ? new Date(toDate).toISOString() : "";
+          executeFrom = fromDate ? new Date(fromDate).toISOString() : ""
+          executeTo = toDate ? new Date(toDate).toISOString() : ""
         } else {
-            executeFrom = "";
-            executeTo ="";
+          executeFrom = ""
+          executeTo = ""
         }
 
         if (!minPrice || !maxPrice || !quantity || !executeStatus) {
@@ -121,7 +132,7 @@ export default function AnalyticsPage() {
         quantity: quantity,
         executeFrom,
         executeTo,
-        balanceQuantity: "0",
+        balanceQuantity: quantity,
         executeStatus: executeStatus, 
         userId: "Ginura", 
       };
@@ -176,6 +187,8 @@ export default function AnalyticsPage() {
     setAlert(null)
   }
 
+  if (!mounted || !role) return null;
+
   return (
     <SidebarProvider
       style={
@@ -185,7 +198,7 @@ export default function AnalyticsPage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" role={role} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -262,8 +275,8 @@ export default function AnalyticsPage() {
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Single</SelectItem>
-                          <SelectItem value="processing">
+                          <SelectItem value="S">Single</SelectItem>
+                          <SelectItem value="M">
                             Multiple
                           </SelectItem>
                         </SelectContent>

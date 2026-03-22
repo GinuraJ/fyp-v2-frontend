@@ -1,4 +1,5 @@
 "use client"
+
 import { useEffect, useState } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -7,24 +8,18 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { SiteHeader } from "@/components/site-header"
-import { TabsDemo } from "@/components/treeFilterTabs"
+import { TradesPanel } from "@/components/tradesPanel"
 
-export default function AnalyticsPage() {
-
-  const [email, setEmail] = useState<string | null>(null)
+export default function TradesPage() {
   const [role, setRole] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem("email")
-    const storedRole = localStorage.getItem("role")
-    setEmail(storedEmail)
-    setRole(storedRole)
+    setRole(localStorage.getItem("role"))
     setMounted(true)
   }, [])
 
-  if (!mounted || !role) 
-    return null;
+  if (!mounted || !role) return null
 
   return (
     <SidebarProvider
@@ -32,18 +27,14 @@ export default function AnalyticsPage() {
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
           "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
+        } as import("react").CSSProperties
       }
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
-              <TabsDemo />
-            </div>
-          </div>
+        <div className="flex flex-1 flex-col p-4 md:p-6">
+          <TradesPanel />
         </div>
       </SidebarInset>
     </SidebarProvider>
